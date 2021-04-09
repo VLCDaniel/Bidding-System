@@ -69,8 +69,12 @@ abstract public class User {
         return phoneNumber;
     }
 
+    public int getUserID() {
+        return userID;
+    }
+
     @Override
     public String toString() {
-        return "User: " + lastName + ' ' + firstName + ' ' + email + ' ' + phoneNumber;
+        return "(" + userID + ") " + nickName + ", " + email + '\n';
     }
 }

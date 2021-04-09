@@ -8,9 +8,10 @@ abstract public class Product {
     private float startPrice;
     private float soldPrice;
     private int buyerID;
+    private int sellerID;
     private boolean insurance;
 
-    public Product(String productName, String description, float startPrice, boolean insurance) {
+    public Product(String productName, String description, float startPrice, boolean insurance, int ID) {
         this.productID = contor;
         this.productName = productName;
         this.description = description;
@@ -18,6 +19,7 @@ abstract public class Product {
         this.insurance = insurance;
         this.soldPrice = 0;
         this.buyerID = -1;
+        this.sellerID = ID;
         contor++;
     }
 
@@ -67,5 +69,14 @@ abstract public class Product {
 
     public void setInsurance(boolean insurance) {
         this.insurance = insurance;
+    }
+
+    public int getProductID() {
+        return productID;
+    }
+
+    @Override
+    public String toString() {
+        return "(" + productID + ") " + productName + ", start " + startPrice + "$\n";
     }
 }

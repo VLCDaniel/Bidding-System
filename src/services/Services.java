@@ -252,7 +252,10 @@ final class Services {
                 System.out.println("(0) Exit application");
                 System.out.println("(1) Logout");
                 System.out.println("(2) List of auctions ordered by date");
-                System.out.println("(3) Add a new product");
+                System.out.println("(3) Add a new product to your account");
+                System.out.println("(4) Display your products");
+                System.out.println("(5) Add a new auction");
+                System.out.println("(6) Add product to auction");
                 System.out.println("(8) Delete Account");
                 option = input.nextLine();
                 switch(option){
@@ -270,6 +273,48 @@ final class Services {
                     }
                     case "3":{
                         addProduct();
+                        break;
+                    }
+                    case "4":{
+                        displayProducts();
+                        break;
+                    }
+                    case "5":{
+                        addAuction();
+                        break;
+                    }
+                    case "6":{
+                        addProductToAuction();
+                        break;
+                    }
+                    case "8":{
+                        deleteAccount();
+                        break;
+                    }
+                    default: {
+                        System.out.println("Please enter a number from the above list");
+                        break;
+                    }
+                }
+            }
+
+            if(user instanceof BidderAgent){ // Options for seller
+                System.out.println("(0) Exit application");
+                System.out.println("(1) Logout");
+                System.out.println("(2) List of auctions ordered by date");
+                System.out.println("(8) Delete Account");
+                option = input.nextLine();
+                switch(option){
+                    case "0": {
+                        exit = true;
+                        break;
+                    }
+                    case "1": {
+                        logout();
+                        break;
+                    }
+                    case "2": {
+                        displayAuctions();
                         break;
                     }
                     case "8":{
@@ -304,10 +349,13 @@ final class Services {
             e.printStackTrace();
         }
     }
+
     private void auctionEntry(){
         Scanner input = new Scanner(System.in);
-        Auction auction;
+        Auction auction = null;
+        boolean ok;
         String id;
+        int ID;
         System.out.println("############################################################");
         displayAuctions();
         while(true){
@@ -315,13 +363,22 @@ final class Services {
             id = input.nextLine();
             if(id.equals("-1"))
                 return;
-            if(id.matches("[A-Za-z0-9]+")){
-                auction = getAuctionByID(Integer.parseInt(id));
-                if(auction != null && auction.getStatus() != "closed")
-                    break;
-                System.out.println("Auction status is closed and you can't entry!");
+            try{
+                ok = true;
+                ID = Integer.parseInt(id);
+                auction = getAuctionByID(ID);
             }
+            catch (Exception e){
+                System.out.println("Enter valid number");
+                ok = false;
+            }
+            if(auction != null && auction.getStatus() != "closed")
+                break;
+            if(ok == true)
+                System.out.println("Auction status is closed and you can't entry!");
         }
+
+
     }
 
     private Auction getAuctionByID(int id){
@@ -473,6 +530,152 @@ final class Services {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    private void displayProducts(){
+        System.out.println("############################################################");
+        ((Seller) user).displayProducts();
+        System.out.println("Press enter to continue...");
+        try {
+            System.in.read();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void addAuction(){
+        Scanner input = new Scanner(System.in);
+        System.out.println("############################################################");
+        String day, month, year;
+        int Day, Month, Year;
+
+        System.out.println("Enter auction ending date:");
+
+        while(true){
+            System.out.println("Enter year of apparition (0 = 1900, 100 = 2000, etc):");
+            year = input.nextLine();
+            try {
+                Year = Integer.parseInt(year);
+                break;
+            }
+            catch (Exception e){
+                System.out.println("Enter a valid number");
+            }
+        }
+
+        while(true){
+            System.out.println("Enter month of apparition (0 = January, 1 = February, etc):");
+            month = input.nextLine();
+            try {
+                Month = Integer.parseInt(month);
+                if(Month <= 11)
+                    break;
+            }
+            catch (Exception e){
+                System.out.println("Enter a valid number");
+            }
+        }
+
+        while(true){
+            System.out.println("Enter day of apparition:");
+            day = input.nextLine();
+            try {
+                Day = Integer.parseInt(day);
+                if(Month <= 31)
+                    break;
+            }
+            catch (Exception e){
+                System.out.println("Enter a valid number");
+            }
+        }
+
+        String type;
+        while(true){
+            System.out.println("Enter auction type: 0 - Normal, 1 - Charity");
+            type = input.nextLine();
+            if(type.equals("1"))
+                break;
+            if(type.equals("0"))
+                break;
+        }
+
+        if(type.equals("0"))
+            auctions.add(new Auction("available", new Date(Year, Month, Day)));
+        else{
+            String description;
+            System.out.println("Enter charity description");
+            description = input.nextLine();
+            auctions.add(new CharityAuction("available", new Date(Year, Month, Day), description));
+        }
+
+        System.out.println("Press enter to continue...");
+        try {
+            System.in.read();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void addProductToAuction(){
+        Scanner input = new Scanner(System.in);
+        Auction auction = null;
+        boolean ok;
+        String id;
+        int ID;
+        System.out.println("############################################################");
+        displayAuctions();
+        while(true){
+            System.out.println("Enter auction id, -1 to exit:");
+            id = input.nextLine();
+            if(id.equals("-1"))
+                return;
+            try{
+                ok = true;
+                ID = Integer.parseInt(id);
+                auction = getAuctionByID(ID);
+            }
+            catch (Exception e){
+                System.out.println("Enter valid number");
+                ok = false;
+            }
+            if(auction != null && auction.getStatus() != "closed")
+                break;
+            if(ok == true)
+                System.out.println("Auction status is closed and you can't entry!");
+        }
+
+        String prodID;
+        int productID;
+        Product product;
+        displayProducts();
+        while(true){
+            while(true){
+                System.out.println("Select a valid product id from your products:");
+                prodID = input.nextLine();
+                try{
+                    productID = Integer.parseInt(prodID);
+                    break;
+                }
+                catch (Exception e){
+                    System.out.println("Enter valid number");
+                }
+            }
+            product = ((Seller)user).getProductByID(productID);
+            if(product.getBuyerID() == -1)
+                break;
+            System.out.println("This product has been sold, try another one, or enter -1 to exit");
+            prodID = input.nextLine();
+            if("-1".equals(prodID))
+                return;
+        }
+
+        auction.addProduct(product);
+        System.out.println("Press enter to continue...");
+        try {
+            System.in.read();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
