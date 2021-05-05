@@ -7,8 +7,8 @@ import java.util.List;
 public class Auction{
     private static int counter = 0;
     private int auctionID;
-    private String status; // "ongoing"/"available"/"closed"
-    private Date date;
+    private String status; // "available"/"closed"
+    private Date date; // closing date
     private List<Product> products = new ArrayList<>();
     private List<User> users = new ArrayList<>();
 
