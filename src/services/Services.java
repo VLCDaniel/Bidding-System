@@ -268,14 +268,26 @@ final class Services {
         System.out.println("Password: ");
         password = input.nextLine();
 
-        if(input.equals("1"))
+        if(type.equals("1")) {
+            System.out.println("You have successfully registered as a Bidder!");
             user = new Bidder(lastName, firstName, email, phoneNumber, nickName, password);
-        if(input.equals("2"))
+        }
+        else if(type.equals("2")){
+            System.out.println("You have successfully registered as a BidderAgent!");
             user = new BidderAgent(lastName, firstName, email, phoneNumber, nickName, password);
-        else
+        }
+        else{
+            System.out.println("You have successfully registered as a Seller!");
             user = new Seller(lastName, firstName, email, phoneNumber, nickName, password);
+        }
 
         users.add(user);
+        System.out.println("Press enter to continue...");
+        try {
+            System.in.read();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         displayOptions();
     }
 
@@ -406,6 +418,12 @@ final class Services {
     private void logout(){
         user = null;
         System.out.println("You have successfully logged out. Thank you for using our app!");
+        System.out.println("Press enter to continue...");
+        try {
+            System.in.read();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         userLogin();
     }
 
@@ -425,7 +443,7 @@ final class Services {
     private void auctionEntry(){
         Scanner input = new Scanner(System.in);
         Auction auction = null;
-        boolean ok;
+        boolean validNumber;
         String id;
         int ID;
         System.out.println("############################################################");
@@ -436,21 +454,32 @@ final class Services {
             if(id.equals("-1"))
                 return;
             try{
-                ok = true;
+                validNumber = true;
                 ID = Integer.parseInt(id);
                 auction = getAuctionByID(ID);
             }
             catch (Exception e){
                 System.out.println("Enter valid number");
-                ok = false;
+                validNumber = false;
             }
             if(auction != null && auction.getStatus() != "closed")
-                break;
-            if(ok == true)
+                if(auction.searchUser(user) == true)
+                    System.out.println("You are already registered in this auction!");
+                else
+                    break;
+            else if(validNumber == true && auction != null)
                 System.out.println("Auction status is closed and you can't entry!");
+            else
+                System.out.println("Auction id doesn't exist!");
         }
 
-
+        auction.addUser(user);
+        System.out.println("Successfully registered to auction!\nPress enter to continue...");
+        try {
+            System.in.read();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private Auction getAuctionByID(int id){
