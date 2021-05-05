@@ -69,13 +69,65 @@ final class Services {
     // User Login
     private void userLogin() {
         Scanner input = new Scanner(System.in);
-        System.out.println("Login/Register");
+
+        String year, month, day;
+        Integer Year, Month, Day;
+        System.out.println("For testing purposes, you can modify the date to update auctions status");
+        while(true){
+            System.out.println("Enter year (0 = 1900, 100 = 2000, 121 = 2021, etc):");
+            year = input.nextLine();
+            try {
+                Year = Integer.parseInt(year);
+                break;
+            }
+            catch (Exception e){
+                System.out.println("Enter a valid number");
+            }
+        }
+
+        while(true){
+            System.out.println("Enter month of apparition (0 = January, 1 = February, etc):");
+            month = input.nextLine();
+            try {
+                Month = Integer.parseInt(month);
+                if(Month <= 11)
+                    break;
+            }
+            catch (Exception e){
+                System.out.println("Enter a valid number");
+            }
+        }
+
+        while(true){
+            System.out.println("Enter day of apparition(1-31):");
+            day = input.nextLine();
+            try {
+                Day = Integer.parseInt(day);
+                if(Month <= 31)
+                    break;
+            }
+            catch (Exception e){
+                System.out.println("Enter a valid number");
+            }
+        }
+
+        Date d = new Date(Year, Month, Day);
+        System.out.println("\nDate you entered:\n   " + d);
+        updateAuctions(d);
+
+        System.out.println("\nLogin/Register");
         String nickName;
         boolean isUser, validPassword;
 
-        for (int i = 5; i > 0; i--) {
-            System.out.println("Login? (yes/no)");
-            String login = input.nextLine();
+        int i;
+        for (i = 5; i > 0; i--) { // 5 attempts to login
+            String login;
+            while(true){
+                System.out.println("Login? (yes/no)");
+                login = input.nextLine();
+                if("yes".equals(login) || "no".equals(login))
+                    break;
+            }
 
             // Login
             if ("yes".equals(login)) {
@@ -122,9 +174,14 @@ final class Services {
                     System.out.println("Password missmatch! You have " + (i - 1) + " tries left.");
             }
             else{
-                System.out.println("Register with a new account? (yes/no)");
-                String bidderAgent = input.nextLine();
-                if("yes".equals(bidderAgent)){
+                String register;
+                while(true){
+                    System.out.println("Register with a new account? (yes/no)");
+                    register = input.nextLine();
+                    if("yes".equals(register) || "no".equals(register))
+                        break;
+                }
+                if("yes".equals(register)){
                     userRegistration();
                     break;
                 }
@@ -133,10 +190,21 @@ final class Services {
             }
         }
 
-        System.out.println("Your 5 attempts expired :(. Try again later (Restart app)!");
+        if(i == 0)
+            System.out.println("Your 5 attempts expired :(. Try again later (Restart app)!");
     }
 
     // Helper functions
+    private void updateAuctions(Date d){
+        for (Auction a : auctions){
+            if(d.compareTo(a.getDate()) >= 0)
+                a.setStatus("available");
+            else
+                a.setStatus("closed");
+        }
+        System.out.println("Auctions updated!");
+    }
+
     private boolean isUser(String nickName) {
         for(int i = 0; i < users.size(); i++)
             if(users.get(i).getNickName().equals(nickName))
@@ -167,14 +235,18 @@ final class Services {
 
         while(true){
             System.out.println("How would you like to use your account:");
+            System.out.println("(0) Exit Application");
             System.out.println("(1) Bidding");
             System.out.println("(2) Bidding Agent");
             System.out.println("(3) Selling");
-            System.out.println("Type: 1 / 2 / 3");
+            System.out.println("Type: 0 / 1 / 2 / 3");
             type = input.nextLine();
-            if(type.equals("1") || type.equals("2") || type.equals("3"))
+            if(type.equals("0") || type.equals("1") || type.equals("2") || type.equals("3"))
                 break;
         }
+
+        if(type.equals("0"))
+            return;
 
         System.out.println("First Name: ");
         firstName = input.nextLine();
