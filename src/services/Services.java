@@ -198,9 +198,9 @@ final class Services {
     private void updateAuctions(Date d){
         for (Auction a : auctions){
             if(d.compareTo(a.getDate()) >= 0)
-                a.setStatus("available");
-            else
                 a.setStatus("closed");
+            else
+                a.setStatus("available");
         }
         System.out.println("Auctions updated!");
     }
@@ -509,7 +509,7 @@ final class Services {
         state = input.nextLine();
 
         while(true){
-            System.out.println("Enter year of apparition (0 = 1900, 100 = 2000, etc):");
+            System.out.println("Enter year of apparition (0 = 1900, 100 = 2000, 121 = 2021, etc):");
             year = input.nextLine();
             try {
                 Year = Integer.parseInt(year);
@@ -534,7 +534,7 @@ final class Services {
         }
 
         while(true){
-            System.out.println("Enter day of apparition:");
+            System.out.println("Enter day of apparition(1-31):");
             day = input.nextLine();
             try {
                 Day = Integer.parseInt(day);
@@ -625,7 +625,7 @@ final class Services {
         System.out.println("Enter auction ending date:");
 
         while(true){
-            System.out.println("Enter year of apparition (0 = 1900, 100 = 2000, etc):");
+            System.out.println("Enter year of apparition (0 = 1900, 100 = 2000, 121 = 2021, etc):");
             year = input.nextLine();
             try {
                 Year = Integer.parseInt(year);
@@ -650,7 +650,7 @@ final class Services {
         }
 
         while(true){
-            System.out.println("Enter day of apparition:");
+            System.out.println("Enter day of apparition(1-31):");
             day = input.nextLine();
             try {
                 Day = Integer.parseInt(day);
@@ -681,7 +681,7 @@ final class Services {
             auctions.add(new CharityAuction("available", new Date(Year, Month, Day), description));
         }
 
-        System.out.println("Press enter to continue...");
+        System.out.println("Auction added!\nPress enter to continue...");
         try {
             System.in.read();
         } catch (IOException e) {
@@ -692,7 +692,7 @@ final class Services {
     private void addProductToAuction(){
         Scanner input = new Scanner(System.in);
         Auction auction = null;
-        boolean ok;
+        boolean validNumber;
         String id;
         int ID;
         System.out.println("############################################################");
@@ -703,37 +703,58 @@ final class Services {
             if(id.equals("-1"))
                 return;
             try{
-                ok = true;
+                validNumber = true;
                 ID = Integer.parseInt(id);
                 auction = getAuctionByID(ID);
             }
             catch (Exception e){
                 System.out.println("Enter valid number");
-                ok = false;
+                validNumber = false;
             }
             if(auction != null && auction.getStatus() != "closed")
                 break;
-            if(ok == true)
-                System.out.println("Auction status is closed and you can't entry!");
+            if(validNumber == true)
+                if(auction != null)
+                    System.out.println("Auction status is closed and you can't entry!");
+                else
+                    System.out.println("Auction id does not exist!");
+        }
+
+        System.out.println("You have selected the following auction:");
+        System.out.println(auction.toString());
+        System.out.println("We'll display your products now.\nPress enter to continue...");
+        try {
+            System.in.read();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         String prodID;
-        int productID;
-        Product product;
+        int productID = 0;
+        Product product = null;
         displayProducts();
         while(true){
             while(true){
-                System.out.println("Select a valid product id from your products:");
+                System.out.println("Select a valid product id from your products or enter -1 to exit:");
                 prodID = input.nextLine();
+                if("-1".equals(prodID))
+                    return;
                 try{
                     productID = Integer.parseInt(prodID);
-                    break;
+                    validNumber = true;
                 }
                 catch (Exception e){
                     System.out.println("Enter valid number");
+                    validNumber = false;
+                }
+                if(validNumber == true){
+                    product = ((Seller)user).getProductByID(productID);
+                    if(product != null)
+                        break;
+                    System.out.println("Product id does not exist!");
                 }
             }
-            product = ((Seller)user).getProductByID(productID);
+
             if(product.getBuyerID() == -1)
                 break;
             System.out.println("This product has been sold, try another one, or enter -1 to exit");
@@ -743,7 +764,7 @@ final class Services {
         }
 
         auction.addProduct(product);
-        System.out.println("Press enter to continue...");
+        System.out.println("Product added to your list!\nPress enter to continue...");
         try {
             System.in.read();
         } catch (IOException e) {
