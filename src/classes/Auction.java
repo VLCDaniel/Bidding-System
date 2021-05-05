@@ -47,6 +47,14 @@ public class Auction{
         return auctionID;
     }
 
+    public boolean searchUser(User user){
+        for(User u : users){
+            if(u.getUserID() == user.getUserID())
+                return true;
+        }
+        return false;
+    }
+
     @Override
     public String toString() {
         String result = "Auction ID: (" + auctionID + ") -> " + status + " | " + date + " |\n";
