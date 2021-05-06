@@ -48,6 +48,8 @@ final class Services {
                 seller1.getUserID(), "well kept", new Date(12, 2, 8), "Gladiator Spartacus", "Leonardo Dicaprio",
                 "Blacksmith John Fritz", false, "museum"));
         auctions.add(auction1); auctions.add(auction2);
+        ((Bidder)bidder1).addAuction(auction1); ((Bidder)bidder1).addAuction(auction2);
+        ((Bidder)bidder2).addAuction(auction2);
     }
 
     // Display the message that the user receives the first time he enters the application
@@ -297,11 +299,12 @@ final class Services {
         String option;
         boolean exit = false;
         while(true && !exit){
-            if(user instanceof Bidder){ // Options for bidder
+            if(user instanceof Bidder){ // Options for Bidder
                 System.out.println("(0) Exit application");
                 System.out.println("(1) Logout");
                 System.out.println("(2) List of auctions ordered by date");
                 System.out.println("(3) Register to a new auction");
+                System.out.println("(4) Place bet");
                 System.out.println("(8) Delete Account");
                 option = input.nextLine();
                 switch(option){
@@ -319,6 +322,10 @@ final class Services {
                     }
                     case "3":{
                         auctionEntry();
+                        break;
+                    }
+                    case "4":{
+                        placeBet();
                         break;
                     }
                     case "8":{
@@ -474,6 +481,7 @@ final class Services {
         }
 
         auction.addUser(user);
+        ((Bidder) user).addAuction(auction);
         System.out.println("Successfully registered to auction!\nPress enter to continue...");
         try {
             System.in.read();
@@ -794,6 +802,111 @@ final class Services {
 
         auction.addProduct(product);
         System.out.println("Product added to your list!\nPress enter to continue...");
+        try {
+            System.in.read();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void placeBet() {
+        Scanner input = new Scanner(System.in);
+        Auction auction = null;
+        boolean validNumber;
+        String id;
+        int ID;
+
+        System.out.println("Displaying auctions you have registered in:");
+        ((Bidder) user).displayAuctions();
+        System.out.println("Press enter to continue...");
+        try {
+            System.in.read();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        while (true) {
+            System.out.println("Enter auction id, -1 to exit:");
+            id = input.nextLine();
+            if (id.equals("-1"))
+                return;
+            try {
+                validNumber = true;
+                ID = Integer.parseInt(id);
+                auction = getAuctionByID(ID);
+            } catch (Exception e) {
+                System.out.println("Enter valid number");
+                validNumber = false;
+            }
+            if (auction != null && auction.getStatus() != "closed" && auction.searchUser(user) == true)
+                break;
+            if (validNumber == true)
+                if (auction == null)
+                    System.out.println("Auction id does not exist!");
+                else if (auction.getStatus() == "closed")
+                    System.out.println("Auction status is closed and you can't entry!");
+                else
+                    System.out.println("You are not registered to this auction!");
+        }
+
+        System.out.println("\n Products from selected auction:");
+        auction.displayProducts();
+        System.out.println("Press enter to continue...");
+        try {
+            System.in.read();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        String prodID;
+        int productID = 0;
+        Product product = null;
+        while (true) {
+            System.out.println("Select product you want to bet on, or -1 to exit:");
+            prodID = input.nextLine();
+            if ("-1".equals(prodID))
+                return;
+            try {
+                productID = Integer.parseInt(prodID);
+                validNumber = true;
+            } catch (Exception e) {
+                System.out.println("Enter valid number");
+                validNumber = false;
+            }
+            if (validNumber == true) {
+                product = auction.getProduct(productID);
+                if (product != null)
+                    break;
+                System.out.println("Product id does not exist!");
+            }
+        }
+
+        float minBet = Math.max(product.getStartPrice(), product.getSoldPrice());
+        System.out.println("Min bet for this product is: " + minBet);
+        String bet;
+        float Bet = 0;
+        while(true){
+            System.out.println("Enter betting amount(float):");
+            bet = input.nextLine();
+            try {
+                Bet = Float.parseFloat(bet);
+                validNumber = true;
+            }
+            catch (Exception e) {
+                System.out.println("Enter valid float number");
+                validNumber = false;
+            }
+
+            if(validNumber == true)
+                if(Bet > minBet)
+                    break;
+                else
+                    System.out.println("Minimum bet is: " + minBet);
+        }
+
+        product.setSoldPrice(Bet);
+        product.setBuyerID(user.getUserID());
+        System.out.println("Congrats! You are the new price leader on this product!\nPress enter to continue...");
         try {
             System.in.read();
         } catch (IOException e) {
