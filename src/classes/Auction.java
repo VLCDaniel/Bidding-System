@@ -55,6 +55,20 @@ public class Auction{
         return false;
     }
 
+    public void displayProducts(){
+        for(Product p : products)
+            System.out.println(p.toString());
+    }
+
+    public Product getProduct(int productID){
+        Product product = null;
+        for (Product p : products)
+            if(p.getProductID() == productID)
+                product = p;
+
+        return product;
+    }
+
     @Override
     public String toString() {
         String result = "Auction ID: (" + auctionID + ") -> " + status + " | " + date + " |\n";
