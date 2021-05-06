@@ -77,6 +77,10 @@ abstract public class Product {
 
     @Override
     public String toString() {
-        return "(" + productID + ") " + productName + ", start " + startPrice + "$\n";
+        String result = "(" + productID + ") " + productName + ", start " + startPrice + "$\n       " + description;
+        if(soldPrice != 0)
+            result += "; selling/sold at " + soldPrice + "$";
+        result += '\n';
+        return result;
     }
 }
