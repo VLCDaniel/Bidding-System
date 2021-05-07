@@ -3,17 +3,18 @@ package services;
 import classes.*;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 final class Services {
     private static Services servicesInstance = null;
     private List<User> users = new ArrayList<>();
     private List<Auction> auctions = new ArrayList<>();
+    private List<Product> products = new ArrayList<>();
 
     private User user;
+    private Database database;
 
     // Singleton -> private constructor
     private Services() {
@@ -30,26 +31,95 @@ final class Services {
     }
 
     private void getDataBase() {
-        // Users
-        User bidder1 = new Bidder("Vlascenco", "Daniel", "vlascenco.daniel@yahoo.com", "0770xxxxxx", "VLCDaniel", "123");
-        User bidder2 = new Bidder("Bidder2", "Cosmin", "bidder2.cosmin@gmail.com", "0771xxxxxx", "Bidder2Cosmin", "123");
-        User agent1 = new BidderAgent("Agent", "007", "agent.007@yahoo.com", "0772xxxxxx", "Agent007", "123");
-        User seller1 = new Seller("Seller1", "Marius", "marius.business@yahoo.com", "0773xxxxxx", "BussMarius", "123");
-        users.add(bidder1); users.add(bidder2); users.add(agent1); users.add(seller1);
+        database = Database.getDatabaseInstance();
 
-        // Auctions
-        Auction auction1 = new Auction("closed", new Date(120, 0, 29));
-        Auction auction2 = new CharityAuction("closed", new Date(120, 0, 28), "All money will be raised for planting trees");
-        auction1.addUser(bidder1); auction1.addUser(agent1);
-        auction1.addProduct(new CollectionProduct("Postage", "Large collection of postages", 400f, false,
-                seller1.getUserID(), "untouched", new Date(87, 4, 31), "my father"));
-        auction2.addUser(bidder1); auction2.addUser(bidder2);
-        auction2.addProduct(new AncientProduct("Armor", "Very old antique armor", 150000f, true,
-                seller1.getUserID(), "well kept", new Date(12, 2, 8), "Gladiator Spartacus", "Leonardo Dicaprio",
-                "Blacksmith John Fritz", false, "museum"));
-        auctions.add(auction1); auctions.add(auction2);
-        ((Bidder)bidder1).addAuction(auction1); ((Bidder)bidder1).addAuction(auction2);
-        ((Bidder)bidder2).addAuction(auction2);
+
+        // Getting bidder users from database
+        List<String []> info = database.readDataFromCsv("bidders.csv");
+        info.stream()
+                .map(str -> new Bidder(Integer.parseInt(str[0]), str[1], str[2], str[3], str[4],str[5], str[6]))
+                .forEach(bid -> users.add(bid));
+
+
+        // Getting seller users from database
+        info = database.readDataFromCsv("sellers.csv");
+        info.stream()
+                .map(str -> new Seller(Integer.parseInt(str[0]), str[1], str[2], str[3], str[4],str[5], str[6]))
+                .forEach(bid -> users.add(bid));
+
+
+        // Getting collection products from database
+        info = database.readDataFromCsv("collection-products.csv");
+        info.stream()
+                .forEach(str ->
+                {
+                    CollectionProduct p = new CollectionProduct(Integer.parseInt(str[0]),str[1], str[2], Float.parseFloat(str[3]),
+                            Boolean.parseBoolean(str[4]), Integer.parseInt(str[5]), str[6],
+                            new Date(Integer.parseInt(str[7]), Integer.parseInt(str[8]), Integer.parseInt(str[9])), str[10]);
+                    for(User u : users)
+                        if(u.getUserID() == Integer.parseInt(str[5])){
+                            ((Seller)u).addProduct(p); // add product to owner(seller)
+                            break;
+                        }
+                    products.add(p);
+                });
+
+
+        // Getting auctions from database
+        info = database.readDataFromCsv("auctions.csv");
+        info.stream()
+                .forEach(str ->
+                {
+                    Auction a = new Auction(Integer.parseInt(str[0]), str[1],
+                        new Date(Integer.parseInt(str[2]), Integer.parseInt(str[3]), Integer.parseInt(str[4])));
+
+                    int i = 6;
+                    for(i = 6; i < 6 + Integer.parseInt(str[5]); i++){ // add users to auction
+                        for(User u : users)
+                            if(u.getUserID() == Integer.parseInt(str[i])){
+                                a.addUser(u);
+                                ((Bidder)u).addAuction(a);
+                                break;
+                            }
+                    }
+
+                    i ++;
+                    for(; i < str.length; i++) // add products to auction
+                        for(Product p : products)
+                            if(p.getProductID() == Integer.parseInt(str[i])){
+                                a.addProduct(p);
+                                break;
+                            }
+                    auctions.add(a);
+                });
+
+//        System.out.println("Database:");
+//        System.out.println("Users:");
+//        users.forEach(x -> System.out.println("    (" +  x.getUserID() + ") " + x.getNickName()));
+//        System.out.println("Auctions:");
+//        displayAuctions();
+
+
+//        // Users
+//        User bidder1 = new Bidder(-1,"Vlascenco", "Daniel", "vlascenco.daniel@yahoo.com", "0770xxxxxx", "VLCDaniel", "123");
+//        User bidder2 = new Bidder(-1,"Bidder2", "Cosmin", "bidder2.cosmin@gmail.com", "0771xxxxxx", "Bidder2Cosmin", "123");
+//        User agent1 = new BidderAgent(-1,"Agent", "007", "agent.007@yahoo.com", "0772xxxxxx", "Agent007", "123");
+//        User seller1 = new Seller(-1,"Seller1", "Marius", "marius.business@yahoo.com", "0773xxxxxx", "BussMarius", "123");
+//        users.add(bidder1); users.add(bidder2); users.add(agent1); users.add(seller1);
+//
+//        // Auctions
+//        Auction auction1 = new Auction(-1,"closed", new Date(120, 0, 29));
+//        Auction auction2 = new CharityAuction(-1,"closed", new Date(120, 0, 28), "All money will be raised for planting trees");
+//        auction1.addUser(bidder1); auction1.addUser(agent1);
+//        auction1.addProduct(new CollectionProduct(-1,"Postage", "Large collection of postages", 400f, false,
+//                seller1.getUserID(), "untouched", new Date(87, 4, 31), "my father"));
+//        auction2.addUser(bidder1); auction2.addUser(bidder2);
+//        auction2.addProduct(new AncientProduct(-1,"Armor", "Very old antique armor", 150000f, true,
+//                seller1.getUserID(), "well kept", new Date(12, 2, 8), "Gladiator Spartacus", "Leonardo Dicaprio",
+//                "Blacksmith John Fritz", false, "museum"));
+//        auctions.add(auction1); auctions.add(auction2);
+//        ((Bidder)bidder1).addAuction(auction1); ((Bidder)bidder1).addAuction(auction2);
+//        ((Bidder)bidder2).addAuction(auction2);
     }
 
     // Display the message that the user receives the first time he enters the application
@@ -272,15 +342,15 @@ final class Services {
 
         if(type.equals("1")) {
             System.out.println("You have successfully registered as a Bidder!");
-            user = new Bidder(lastName, firstName, email, phoneNumber, nickName, password);
+            user = new Bidder(-1, lastName, firstName, email, phoneNumber, nickName, password);
         }
         else if(type.equals("2")){
             System.out.println("You have successfully registered as a BidderAgent!");
-            user = new BidderAgent(lastName, firstName, email, phoneNumber, nickName, password);
+            user = new BidderAgent(-1, lastName, firstName, email, phoneNumber, nickName, password);
         }
         else{
             System.out.println("You have successfully registered as a Seller!");
-            user = new Seller(lastName, firstName, email, phoneNumber, nickName, password);
+            user = new Seller(-1, lastName, firstName, email, phoneNumber, nickName, password);
         }
 
         users.add(user);
@@ -594,8 +664,10 @@ final class Services {
         }
 
         if(type.equals("0")){
-            ((Seller)user).addProduct(new CollectionProduct(productName, description, startPrice, insurance, user.getUserID(), state,
-                    new Date(Year, Month, Day), firstOwner));
+            CollectionProduct p = new CollectionProduct(-1, productName, description, startPrice, insurance, user.getUserID(), state,
+                    new Date(Year, Month, Day), firstOwner);
+            products.add(p);
+            ((Seller)user).addProduct(p);
 
             System.out.println("Product added to your products collection.\nPress enter to continue...");
             try {
@@ -630,8 +702,10 @@ final class Services {
             System.out.println("Enter the storage place of the product:");
             storagePlace = input.nextLine();
 
-            ((Seller)user).addProduct(new AncientProduct(productName, description, startPrice, insurance, user.getUserID(), state,
-                    new Date(Year, Month, Day), firstOwner, previousOwner, creator, Reasembled, storagePlace));
+            AncientProduct p = new AncientProduct(-1, productName, description, startPrice, insurance, user.getUserID(), state,
+                    new Date(Year, Month, Day), firstOwner, previousOwner, creator, Reasembled, storagePlace);
+            products.add(p);
+            ((Seller)user).addProduct(p);
 
             System.out.println("Product added to your products collection.\nPress enter to continue...");
             try {
@@ -710,12 +784,12 @@ final class Services {
         }
 
         if(type.equals("0"))
-            auctions.add(new Auction("available", new Date(Year, Month, Day)));
+            auctions.add(new Auction(-1,"available", new Date(Year, Month, Day)));
         else{
             String description;
             System.out.println("Enter charity description");
             description = input.nextLine();
-            auctions.add(new CharityAuction("available", new Date(Year, Month, Day), description));
+            auctions.add(new CharityAuction(-1,"available", new Date(Year, Month, Day), description));
         }
 
         System.out.println("Auction added!\nPress enter to continue...");

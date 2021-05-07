@@ -12,10 +12,15 @@ public class Auction{
     private List<Product> products = new ArrayList<>();
     private List<User> users = new ArrayList<>();
 
-    public Auction(String status, Date date) {
+    public Auction(int id, String status, Date date) {
         this.status = status;
         this.date = date;
-        this.auctionID = counter;
+        if(id != -1){
+            counter = Math.max(counter, id);
+            this.auctionID = id;
+        }
+        else
+            this.auctionID = counter;
         counter++;
     }
 

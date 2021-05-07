@@ -10,12 +10,18 @@ abstract public class User {
     private String nickName;
     private String password;
 
-    public User(String lastName, String firstName, String email, String phoneNumber, String nickName, String password) {
+    public User(int id, String lastName, String firstName, String email, String phoneNumber, String nickName, String password) {
         this.lastName = lastName;
         this.firstName = firstName;
         this.email = email;
         this.phoneNumber = phoneNumber;
-        this.userID = contor;
+
+        if(id != -1){
+            contor = Math.max(contor, id);
+            this.userID = id;
+        }
+        else
+            this.userID = contor;
         this.nickName = nickName;
         this.password = password;
         contor++;

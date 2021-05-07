@@ -7,8 +7,8 @@ public class Seller extends User{
     private int productsSold; // number of products sold
     private float balance; // balance from the sold products
 
-    public Seller(String lastName, String firstName, String email, String phoneNumber, String nickName, String password) {
-        super(lastName, firstName, email, phoneNumber, nickName, password);
+    public Seller(int id, String lastName, String firstName, String email, String phoneNumber, String nickName, String password) {
+        super(id, lastName, firstName, email, phoneNumber, nickName, password);
         this.productsSold = 0;
         this.balance = 0;
     }

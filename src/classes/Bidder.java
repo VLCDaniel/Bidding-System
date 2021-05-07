@@ -8,8 +8,8 @@ import java.util.TreeSet;
 public class Bidder extends User{
     private Set<Auction> auctions = new TreeSet<>(new AuctionComparator());
 
-    public Bidder(String lastName, String firstName, String email, String phoneNumber, String nickName, String password) {
-        super(lastName, firstName, email, phoneNumber, nickName, password);
+    public Bidder(int id, String lastName, String firstName, String email, String phoneNumber, String nickName, String password) {
+        super(id, lastName, firstName, email, phoneNumber, nickName, password);
     }
 
     public void addAuction(Auction auction){

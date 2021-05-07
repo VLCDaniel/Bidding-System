@@ -11,7 +11,7 @@ abstract public class Product {
     private int sellerID;
     private boolean insurance;
 
-    public Product(String productName, String description, float startPrice, boolean insurance, int ID) {
+    public Product(int id, String productName, String description, float startPrice, boolean insurance, int ID) {
         this.productID = contor;
         this.productName = productName;
         this.description = description;
@@ -20,6 +20,12 @@ abstract public class Product {
         this.soldPrice = 0;
         this.buyerID = -1;
         this.sellerID = ID;
+        if(id != -1){
+            contor = Math.max(contor, id);
+            this.productID = id;
+        }
+        else
+            this.productID = contor;
         contor++;
     }
 

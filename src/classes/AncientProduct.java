@@ -9,9 +9,9 @@ public class AncientProduct extends CollectionProduct {
     private String storagePlace;
 
 
-    public AncientProduct(String productName, String description, float startPrice, boolean insurance, int ID, String state,
+    public AncientProduct(int id, String productName, String description, float startPrice, boolean insurance, int ID, String state,
                           Date apparition, String firstOwner, String previousOwner, String creator, boolean reasembled, String storagePlace) {
-        super(productName, description, startPrice, insurance, ID, state, apparition, firstOwner);
+        super(id, productName, description, startPrice, insurance, ID, state, apparition, firstOwner);
         this.previousOwner = previousOwner;
         this.creator = creator;
         this.reasembled = reasembled;

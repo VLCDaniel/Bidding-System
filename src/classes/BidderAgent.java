@@ -6,7 +6,7 @@ public class BidderAgent extends User {
     private int clientID;
     private int auctionID;
 
-    public BidderAgent(String lastName, String firstName, String email, String phoneNumber, String nickName, String password) {
-        super(lastName, firstName, email, phoneNumber, nickName, password);
+    public BidderAgent(int id, String lastName, String firstName, String email, String phoneNumber, String nickName, String password) {
+        super(id, lastName, firstName, email, phoneNumber, nickName, password);
     }
 }
