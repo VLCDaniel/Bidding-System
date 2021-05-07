@@ -5,7 +5,7 @@ import java.util.Date;
 import java.util.List;
 
 public class Auction{
-    private static int counter = 0;
+    private static int contor = 0;
     private int auctionID;
     private String status; // "available"/"closed"
     private Date date; // closing date
@@ -16,12 +16,14 @@ public class Auction{
         this.status = status;
         this.date = date;
         if(id != -1){
-            counter = Math.max(counter, id);
+            if(id >= contor)
+                contor = id + 1;
             this.auctionID = id;
         }
-        else
-            this.auctionID = counter;
-        counter++;
+        else{
+            this.auctionID = contor;
+            contor++;
+        }
     }
 
     public Date getDate() {
@@ -72,6 +74,22 @@ public class Auction{
                 product = p;
 
         return product;
+    }
+
+    public List<Product> getProducts() {
+        return products;
+    }
+
+    public void setProducts(List<Product> products) {
+        this.products = products;
+    }
+
+    public List<User> getUsers() {
+        return users;
+    }
+
+    public void setUsers(List<User> users) {
+        this.users = users;
     }
 
     @Override

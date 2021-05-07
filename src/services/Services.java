@@ -340,18 +340,27 @@ final class Services {
         System.out.println("Password: ");
         password = input.nextLine();
 
+        String fileName;
         if(type.equals("1")) {
             System.out.println("You have successfully registered as a Bidder!");
             user = new Bidder(-1, lastName, firstName, email, phoneNumber, nickName, password);
+            fileName = "bidders.csv";
         }
         else if(type.equals("2")){
             System.out.println("You have successfully registered as a BidderAgent!");
             user = new BidderAgent(-1, lastName, firstName, email, phoneNumber, nickName, password);
+            fileName = "bidder-agents.csv";
         }
         else{
             System.out.println("You have successfully registered as a Seller!");
             user = new Seller(-1, lastName, firstName, email, phoneNumber, nickName, password);
+            fileName = "sellers.csv";
         }
+
+        ArrayList<String> info = new ArrayList<String>();
+        info.add(String.valueOf(user.getUserID())); info.add(user.getLastName()); info.add(user.getFirstName());
+        info.add(user.getEmail()); info.add(user.getPhoneNumber()); info.add(user.getNickName()); info.add(user.getPassword());
+        database.addToCsv(fileName, info);
 
         users.add(user);
         System.out.println("Press enter to continue...");
@@ -663,11 +672,26 @@ final class Services {
                 break;
         }
 
+        String fileName = "";
+        ArrayList<String> info = null;
         if(type.equals("0")){
             CollectionProduct p = new CollectionProduct(-1, productName, description, startPrice, insurance, user.getUserID(), state,
                     new Date(Year, Month, Day), firstOwner);
             products.add(p);
             ((Seller)user).addProduct(p);
+
+            fileName = "collection-products.csv";
+            info = new ArrayList<String>();
+            info.add(String.valueOf(p.getProductID())); info.add(p.getProductName()); info.add(p.getDescription());
+            info.add(String.valueOf(p.getStartPrice())); info.add(String.valueOf(p.getInsurance()));
+            info.add(String.valueOf(p.getSellerID())); info.add(p.getState()); info.add(String.valueOf(p.getApparition().getYear()));
+            info.add(String.valueOf(p.getApparition().getMonth())); info.add(String.valueOf(p.getApparition().getDate()));
+            info.add(p.getFirstOwner());
+
+//            {String.valueOf(p.getProductID()), p.getProductName(), p.getDescription(),
+//                    String.valueOf(p.getStartPrice()), String.valueOf(p.getInsurance()), String.valueOf(p.getSellerID()),
+//                    p.getState(), String.valueOf(p.getApparition().getYear()), String.valueOf(p.getApparition().getMonth()),
+//                    String.valueOf(p.getApparition().getDate()),p.getFirstOwner()}
 
             System.out.println("Product added to your products collection.\nPress enter to continue...");
             try {
@@ -707,6 +731,19 @@ final class Services {
             products.add(p);
             ((Seller)user).addProduct(p);
 
+            fileName = "ancient-products.csv";
+            info = new ArrayList<String>();
+            info.add(String.valueOf(p.getProductID())); info.add(p.getProductName()); info.add(p.getDescription());
+            info.add(String.valueOf(p.getStartPrice())); info.add(String.valueOf(p.getInsurance()));
+            info.add(String.valueOf(p.getSellerID())); info.add(p.getState()); info.add(String.valueOf(p.getApparition().getYear()));
+            info.add(String.valueOf(p.getApparition().getMonth())); info.add(String.valueOf(p.getApparition().getDate()));
+            info.add(p.getFirstOwner());
+
+//            infoCsv = new String[]{String.valueOf(p.getProductID()), p.getProductName(), p.getDescription(),
+//                    String.valueOf(p.getStartPrice()), String.valueOf(p.getInsurance()), String.valueOf(p.getSellerID()),
+//                    p.getState(), String.valueOf(p.getApparition().getYear()), String.valueOf(p.getApparition().getMonth()),
+//                    String.valueOf(p.getApparition().getDate()),p.getFirstOwner()};
+
             System.out.println("Product added to your products collection.\nPress enter to continue...");
             try {
                 System.in.read();
@@ -714,6 +751,8 @@ final class Services {
                 e.printStackTrace();
             }
         }
+
+        database.addToCsv(fileName, info);
     }
 
     private void displayProducts(){
@@ -783,8 +822,22 @@ final class Services {
                 break;
         }
 
-        if(type.equals("0"))
-            auctions.add(new Auction(-1,"available", new Date(Year, Month, Day)));
+        String fileName = "";
+        ArrayList<String> info = new ArrayList<String>();
+        if(type.equals("0")){
+            Auction a = new Auction(-1,"available", new Date(Year, Month, Day));
+            auctions.add(a);
+            fileName = "auctions.csv";
+            info.add(String.valueOf(a.getAuctionID())); info.add(a.getStatus()); info.add(String.valueOf(a.getDate().getYear()));
+            info.add(String.valueOf(a.getDate().getMonth())); info.add(String.valueOf(a.getDate().getDate()));
+            info.add(String.valueOf(a.getUsers().size())); // Add users
+            for(User u : a.getUsers())
+                info.add(String.valueOf(u.getUserID()));
+            info.add(String.valueOf(a.getProducts().size())); // Add products
+            for(Product p : a.getProducts())
+                info.add(String.valueOf(p.getProductID()));
+
+        }
         else{
             String description;
             System.out.println("Enter charity description");
@@ -792,6 +845,7 @@ final class Services {
             auctions.add(new CharityAuction(-1,"available", new Date(Year, Month, Day), description));
         }
 
+        database.addToCsv(fileName, info);
         System.out.println("Auction added!\nPress enter to continue...");
         try {
             System.in.read();

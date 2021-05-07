@@ -13,4 +13,28 @@ public class CollectionProduct extends Product{
         this.apparition = apparition;
         this.firstOwner = firstOwner;
     }
+
+    public String getFirstOwner() {
+        return firstOwner;
+    }
+
+    public void setFirstOwner(String firstOwner) {
+        this.firstOwner = firstOwner;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public Date getApparition() {
+        return apparition;
+    }
+
+    public void setApparition(Date apparition) {
+        this.apparition = apparition;
+    }
 }

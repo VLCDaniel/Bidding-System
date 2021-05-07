@@ -21,12 +21,14 @@ abstract public class Product {
         this.buyerID = -1;
         this.sellerID = ID;
         if(id != -1){
-            contor = Math.max(contor, id);
+            if(id >= contor)
+                contor = id + 1;
             this.productID = id;
         }
-        else
+        else{
             this.productID = contor;
-        contor++;
+            contor++;
+        }
     }
 
     public String getProductName() {
@@ -53,7 +55,7 @@ abstract public class Product {
         this.startPrice = startPrice;
     }
 
-    public boolean isInsurance() {
+    public boolean getInsurance() {
         return insurance;
     }
 
@@ -80,6 +82,19 @@ abstract public class Product {
     public int getProductID() {
         return productID;
     }
+
+    public void setProductID(int productID) {
+        this.productID = productID;
+    }
+
+    public int getSellerID() {
+        return sellerID;
+    }
+
+    public void setSellerID(int sellerID) {
+        this.sellerID = sellerID;
+    }
+
 
     @Override
     public String toString() {

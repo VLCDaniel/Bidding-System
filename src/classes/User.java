@@ -17,14 +17,16 @@ abstract public class User {
         this.phoneNumber = phoneNumber;
 
         if(id != -1){
-            contor = Math.max(contor, id);
+            if(id >= contor)
+                contor = id + 1;
             this.userID = id;
         }
-        else
+        else{
             this.userID = contor;
+            contor++;
+        }
         this.nickName = nickName;
         this.password = password;
-        contor++;
     }
 
     public String getNickName() {
