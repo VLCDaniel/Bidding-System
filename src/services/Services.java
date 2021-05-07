@@ -15,6 +15,7 @@ final class Services {
 
     private User user;
     private Database database;
+    private Audit audit;
 
     // Singleton -> private constructor
     private Services() {
@@ -32,6 +33,7 @@ final class Services {
 
     private void getDataBase() {
         database = Database.getDatabaseInstance();
+        audit = Audit.getAuditInstance();
 
 
         // Getting bidder users from database
@@ -239,6 +241,7 @@ final class Services {
                     if(user instanceof Seller)
                         System.out.println("You are logged in as a Seller");
 
+                    audit.auditLog("Log in");
                     displayOptions();
                     return;
                 }
@@ -262,8 +265,11 @@ final class Services {
             }
         }
 
-        if(i == 0)
+        if(i == 0){
             System.out.println("Your 5 attempts expired :(. Try again later (Restart app)!");
+            audit.auditLog("Login fail, application stop.");
+            System.exit(0);
+        }
     }
 
     // Helper functions
@@ -369,6 +375,7 @@ final class Services {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        audit.auditLog("Register.");
         displayOptions();
     }
 
@@ -413,6 +420,7 @@ final class Services {
                     }
                     default: {
                         System.out.println("Please enter a number from the above list");
+                        exit = true;
                         break;
                     }
                 }
@@ -459,6 +467,7 @@ final class Services {
                     }
                     case "8":{
                         deleteAccount();
+                        exit = true;
                         break;
                     }
                     default: {
@@ -493,11 +502,13 @@ final class Services {
                     }
                     default: {
                         System.out.println("Please enter a number from the above list");
+                        exit = true;
                         break;
                     }
                 }
             }
         }
+        audit.auditLog("Exit application.");
     }
 
     // Logout
@@ -510,6 +521,7 @@ final class Services {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        audit.auditLog("Log out.");
         userLogin();
     }
 
@@ -518,6 +530,7 @@ final class Services {
         for(Auction a : auctions)
             System.out.println(a);
 
+        audit.auditLog("Display auctions in order.");
         System.out.println("Press enter to continue...");
         try {
             System.in.read();
@@ -562,6 +575,8 @@ final class Services {
         auction.addUser(user);
         ((Bidder) user).addAuction(auction);
         System.out.println("Successfully registered to auction!\nPress enter to continue...");
+        audit.auditLog("Auction registration.");
+
         try {
             System.in.read();
         } catch (IOException e) {
@@ -577,6 +592,20 @@ final class Services {
     }
 
     private void deleteAccount(){
+        String fileName = "";
+        int id = 0;
+        if(user instanceof Bidder)
+            fileName = "bidders.csv";
+        else if(user instanceof Seller)
+            fileName = "sellers.csv";
+        else
+            fileName = "bidder-agents.csv";
+
+        id = user.getUserID();
+        database.removeFromCsv(fileName, id);
+        users.remove(user);
+        user = null;
+        audit.auditLog("Account deleted");
         System.out.println("Your account has been deleted!");
         userLogin();
     }
@@ -739,12 +768,8 @@ final class Services {
             info.add(String.valueOf(p.getApparition().getMonth())); info.add(String.valueOf(p.getApparition().getDate()));
             info.add(p.getFirstOwner());
 
-//            infoCsv = new String[]{String.valueOf(p.getProductID()), p.getProductName(), p.getDescription(),
-//                    String.valueOf(p.getStartPrice()), String.valueOf(p.getInsurance()), String.valueOf(p.getSellerID()),
-//                    p.getState(), String.valueOf(p.getApparition().getYear()), String.valueOf(p.getApparition().getMonth()),
-//                    String.valueOf(p.getApparition().getDate()),p.getFirstOwner()};
-
             System.out.println("Product added to your products collection.\nPress enter to continue...");
+            audit.auditLog("Product added.");
             try {
                 System.in.read();
             } catch (IOException e) {
@@ -759,6 +784,7 @@ final class Services {
         System.out.println("############################################################");
         ((Seller) user).displayProducts();
         System.out.println("Press enter to continue...");
+        audit.auditLog("Added products displayed.");
         try {
             System.in.read();
         } catch (IOException e) {
@@ -847,6 +873,7 @@ final class Services {
 
         database.addToCsv(fileName, info);
         System.out.println("Auction added!\nPress enter to continue...");
+        audit.auditLog("Auction added.");
         try {
             System.in.read();
         } catch (IOException e) {
@@ -930,6 +957,7 @@ final class Services {
 
         auction.addProduct(product);
         System.out.println("Product added to your list!\nPress enter to continue...");
+        audit.auditLog("Product added.");
         try {
             System.in.read();
         } catch (IOException e) {
@@ -1035,6 +1063,7 @@ final class Services {
         product.setSoldPrice(Bet);
         product.setBuyerID(user.getUserID());
         System.out.println("Congrats! You are the new price leader on this product!\nPress enter to continue...");
+        audit.auditLog("Bet placed.");
         try {
             System.in.read();
         } catch (IOException e) {

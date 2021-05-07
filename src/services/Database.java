@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -44,6 +45,30 @@ public final class Database {
             csvWriter.write("\n");
             csvWriter.flush();
             csvWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void removeFromCsv(String fileName, int id){
+        try {
+            List<String []> info = Files.lines(Paths.get("resources/" + fileName))
+                    .map(line -> line.split(","))
+                    .filter(line -> !line[0].equals(String.valueOf(id)))
+                    .collect(Collectors.toList());
+
+            FileWriter writer = new FileWriter("resources/" + fileName);
+            info.stream().forEach(line -> {
+                try {
+                    writer.write(String.join(",", line));
+                    writer.write("\n");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+            writer.flush();
+            writer.close();
+
         } catch (IOException e) {
             e.printStackTrace();
         }
