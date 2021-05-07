@@ -50,6 +50,38 @@ public final class Database {
         }
     }
 
+    public void updateCsv(String fileName, int id, ArrayList<String> updatedInfo){
+        try {
+            List<String []> info = Files.lines(Paths.get("resources/" + fileName)) // get info from file
+                    .map(line -> line.split(","))
+                    .collect(Collectors.toList());
+
+            FileWriter writer = new FileWriter("resources/" + fileName);
+
+            info.forEach(line -> {
+                if(line[0].equals(String.valueOf(id))) // line with id is modified
+                    try{
+                        writer.write(String.join(",", updatedInfo));
+                        writer.write("\n");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                else // the rest of the file is the same
+                    try {
+                        writer.write(String.join(",", line));
+                        writer.write("\n");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+            });
+            writer.flush();
+            writer.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void removeFromCsv(String fileName, int id){
         try {
             List<String []> info = Files.lines(Paths.get("resources/" + fileName))
@@ -58,7 +90,7 @@ public final class Database {
                     .collect(Collectors.toList());
 
             FileWriter writer = new FileWriter("resources/" + fileName);
-            info.stream().forEach(line -> {
+            info.forEach(line -> {
                 try {
                     writer.write(String.join(",", line));
                     writer.write("\n");

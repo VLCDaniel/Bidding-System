@@ -416,11 +416,10 @@ final class Services {
                     }
                     case "8":{
                         deleteAccount();
-                        break;
+                        return;
                     }
                     default: {
                         System.out.println("Please enter a number from the above list");
-                        exit = true;
                         break;
                     }
                 }
@@ -467,8 +466,7 @@ final class Services {
                     }
                     case "8":{
                         deleteAccount();
-                        exit = true;
-                        break;
+                        return;
                     }
                     default: {
                         System.out.println("Please enter a number from the above list");
@@ -498,11 +496,10 @@ final class Services {
                     }
                     case "8":{
                         deleteAccount();
-                        break;
+                        return;
                     }
                     default: {
                         System.out.println("Please enter a number from the above list");
-                        exit = true;
                         break;
                     }
                 }
@@ -574,6 +571,20 @@ final class Services {
 
         auction.addUser(user);
         ((Bidder) user).addAuction(auction);
+
+        ArrayList<String> info = new ArrayList<>(); // Modified info
+        Auction a = auction;
+        info.add(String.valueOf(a.getAuctionID())); info.add(a.getStatus()); info.add(String.valueOf(a.getDate().getYear()));
+        info.add(String.valueOf(a.getDate().getMonth())); info.add(String.valueOf(a.getDate().getDate()));
+        info.add(String.valueOf(a.getUsers().size())); // Add users
+        for(User u : a.getUsers())
+            info.add(String.valueOf(u.getUserID()));
+        info.add(String.valueOf(a.getProducts().size())); // Add products
+        for(Product p : a.getProducts())
+            info.add(String.valueOf(p.getProductID()));
+
+        database.updateCsv("auctions.csv", a.getAuctionID(), info); // update auction
+
         System.out.println("Successfully registered to auction!\nPress enter to continue...");
         audit.auditLog("Auction registration.");
 
@@ -716,11 +727,6 @@ final class Services {
             info.add(String.valueOf(p.getSellerID())); info.add(p.getState()); info.add(String.valueOf(p.getApparition().getYear()));
             info.add(String.valueOf(p.getApparition().getMonth())); info.add(String.valueOf(p.getApparition().getDate()));
             info.add(p.getFirstOwner());
-
-//            {String.valueOf(p.getProductID()), p.getProductName(), p.getDescription(),
-//                    String.valueOf(p.getStartPrice()), String.valueOf(p.getInsurance()), String.valueOf(p.getSellerID()),
-//                    p.getState(), String.valueOf(p.getApparition().getYear()), String.valueOf(p.getApparition().getMonth()),
-//                    String.valueOf(p.getApparition().getDate()),p.getFirstOwner()}
 
             System.out.println("Product added to your products collection.\nPress enter to continue...");
             try {
@@ -956,6 +962,20 @@ final class Services {
         }
 
         auction.addProduct(product);
+
+        ArrayList<String> info = new ArrayList<>(); // Modified info
+        Auction a = auction;
+        info.add(String.valueOf(a.getAuctionID())); info.add(a.getStatus()); info.add(String.valueOf(a.getDate().getYear()));
+        info.add(String.valueOf(a.getDate().getMonth())); info.add(String.valueOf(a.getDate().getDate()));
+        info.add(String.valueOf(a.getUsers().size())); // Add users
+        for(User u : a.getUsers())
+            info.add(String.valueOf(u.getUserID()));
+        info.add(String.valueOf(a.getProducts().size())); // Add products
+        for(Product p : a.getProducts())
+            info.add(String.valueOf(p.getProductID()));
+
+        database.updateCsv("auctions.csv", a.getAuctionID(), info); // update auction
+
         System.out.println("Product added to your list!\nPress enter to continue...");
         audit.auditLog("Product added.");
         try {
@@ -1062,6 +1082,17 @@ final class Services {
 
         product.setSoldPrice(Bet);
         product.setBuyerID(user.getUserID());
+
+        ArrayList<String> info = new ArrayList<>();
+        CollectionProduct p = (CollectionProduct)product;
+        info.add(String.valueOf(p.getProductID())); info.add(p.getProductName()); info.add(p.getDescription());
+        info.add(String.valueOf(p.getStartPrice())); info.add(String.valueOf(p.getInsurance()));
+        info.add(String.valueOf(p.getSellerID())); info.add(p.getState()); info.add(String.valueOf(p.getApparition().getYear()));
+        info.add(String.valueOf(p.getApparition().getMonth())); info.add(String.valueOf(p.getApparition().getDate()));
+        info.add(p.getFirstOwner());
+
+        database.updateCsv("collection-products.csv", p.getProductID(), info); // update products
+
         System.out.println("Congrats! You are the new price leader on this product!\nPress enter to continue...");
         audit.auditLog("Bet placed.");
         try {
