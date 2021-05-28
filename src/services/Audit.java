@@ -20,6 +20,7 @@ public final class Audit {
         Timestamp currentTime = new Timestamp(date.getTime());
         ArrayList<String> info = new ArrayList<String>();
         info.add(action); info.add(currentTime.toString());
+        info.add(Thread.currentThread().getName());
         Database.getDatabaseInstance().addToCsv("audit.csv", info);
     }
 }

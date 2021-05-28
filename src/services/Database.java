@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.stream.Collectors;
 
 public final class Database {
     private static Database database = null;
+    private Connection con;
 
     public static Database getDatabaseInstance(){
         if (database == null)
@@ -103,6 +105,43 @@ public final class Database {
 
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void init(){
+        try {
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/bidding", "root", "SqLSerVer123456#");
+        } catch (SQLException e) {
+            System.out.println(e);
+            System.out.println("Nu s-a putut realiza conectarea la baza de date.");
+        }
+
+        Statement stmt = null;
+        try {
+            stmt = con.createStatement();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        String sql = "SELECT * FROM bidders";
+        ResultSet rs = null;
+        try {
+            rs = stmt.executeQuery(sql);
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+        System.out.println("From database, usernames:");
+        while(true) {
+            try {
+                if (!rs.next()) break;
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+            try {
+                System.out.println(rs.getString("lastName") + " \n");
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
         }
     }
 }

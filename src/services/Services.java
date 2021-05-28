@@ -34,6 +34,7 @@ final class Services {
 
     private void getDataBase() {
         database = Database.getDatabaseInstance();
+        database.init();
         audit = Audit.getAuditInstance();
 
 
