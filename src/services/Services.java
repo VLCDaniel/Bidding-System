@@ -1,6 +1,7 @@
 package services;
 
 import classes.*;
+import utils.AuctionComparator;
 
 import java.io.IOException;
 import java.util.*;
@@ -10,7 +11,7 @@ import java.util.stream.Stream;
 final class Services {
     private static Services servicesInstance = null;
     private List<User> users = new ArrayList<>();
-    private List<Auction> auctions = new ArrayList<>();
+    private Set<Auction> auctions = new TreeSet<>(new AuctionComparator());
     private List<Product> products = new ArrayList<>();
 
     private User user;
@@ -50,6 +51,21 @@ final class Services {
                 .forEach(bid -> users.add(bid));
 
 
+        // Getting bidder-agent users from database
+        info = database.readDataFromCsv("bidder-agents.csv");
+        info.stream()
+                .forEach(str ->
+                {
+                    BidderAgent bid = new BidderAgent(Integer.parseInt(str[0]), str[1], str[2], str[3], str[4],str[5], str[6], Double.parseDouble(str[8]));
+                    bid.setStatus(str[7]);
+                    bid.setClientID(Integer.parseInt(str[9]));
+                    bid.setAuctionID(Integer.parseInt(str[10]));
+                    bid.setProductID(Integer.parseInt(str[11]));
+                    bid.setMaxSum(Integer.parseInt(str[12]));
+                    users.add(bid);
+                });
+
+
         // Getting collection products from database
         info = database.readDataFromCsv("collection-products.csv");
         info.stream()
@@ -63,6 +79,7 @@ final class Services {
                             ((Seller)u).addProduct(p); // add product to owner(seller)
                             break;
                         }
+                    p.setSoldPrice(Float.parseFloat(str[11]));
                     products.add(p);
                 });
 
@@ -80,7 +97,8 @@ final class Services {
                         for(User u : users)
                             if(u.getUserID() == Integer.parseInt(str[i])){
                                 a.addUser(u);
-                                ((Bidder)u).addAuction(a);
+                                if (u instanceof Bidder)
+                                    ((Bidder)u).addAuction(a);
                                 break;
                             }
                     }
@@ -160,7 +178,7 @@ final class Services {
         }
 
         while(true){
-            System.out.println("Enter month of apparition (0 = January, 1 = February, etc):");
+            System.out.println("Enter month (0 = January, 1 = February, etc):");
             month = input.nextLine();
             try {
                 Month = Integer.parseInt(month);
@@ -173,7 +191,7 @@ final class Services {
         }
 
         while(true){
-            System.out.println("Enter day of apparition(1-31):");
+            System.out.println("Enter day (1-31):");
             day = input.nextLine();
             try {
                 Day = Integer.parseInt(day);
@@ -236,8 +254,35 @@ final class Services {
                     System.out.println("Welcome back, " + user.getLastName() + ' ' + user.getFirstName() + '!');
                     if(user instanceof Bidder)
                         System.out.println("You are logged in as a Bidder");
-                    if(user instanceof BidderAgent)
+                    if(user instanceof BidderAgent){
                         System.out.println("You are logged in as a Bidder Agent");
+                        Auction auction = getAuctionByID(((BidderAgent) user).getAuctionID());
+                        if (auction.getStatus() == "closed"){
+                            ((BidderAgent) user).setClientID(-1);
+                            ((BidderAgent) user).setMaxSum(0);
+                            ((BidderAgent) user).setAuctionID(-1);
+                            ((BidderAgent) user).setProductID(-1);
+                            ((BidderAgent) user).setStatus("available");
+
+                            ArrayList<String> info = new ArrayList<>();
+                            BidderAgent bidder_agent = (BidderAgent) user;
+                            info = new ArrayList<>();
+                            info.add(String.valueOf(bidder_agent.getUserID())); info.add(bidder_agent.getFirstName()); info.add(bidder_agent.getLastName());
+                            info.add(bidder_agent.getEmail()); info.add(bidder_agent.getPhoneNumber()); info.add(bidder_agent.getNickName());
+                            info.add(bidder_agent.getPassword()); info.add(bidder_agent.getStatus()); info.add(String.valueOf(bidder_agent.getCommission()));
+                            info.add(String.valueOf(bidder_agent.getClientID())); info.add(String.valueOf(bidder_agent.getAuctionID()));
+                            info.add(String.valueOf(bidder_agent.getProductID())); info.add(String.valueOf(bidder_agent.getMaxSum()));
+
+                            database.updateCsv("bidder-agents.csv", bidder_agent.getUserID(), info); // update auction
+                        }
+
+                        if(((BidderAgent) user).getClientID() == -1){
+                            System.out.println("You are available to be hired, wait for a bidder to hire you.");
+                        }
+                        else{
+                            System.out.println("You are currently bidding for user with id: " + String.valueOf(((BidderAgent) user).getClientID()));
+                        }
+                    }
                     if(user instanceof Seller)
                         System.out.println("You are logged in as a Seller");
 
@@ -353,8 +398,20 @@ final class Services {
             fileName = "bidders.csv";
         }
         else if(type.equals("2")){
+            double commission;
+            while(true){
+                System.out.println("Enter the commission you want to work with:");
+                type = input.nextLine();
+                try{
+                    commission = Double.parseDouble(type);
+                    break;
+                }
+                catch (Exception e){
+                    System.out.println("Enter valid number(double)");
+                }
+            }
             System.out.println("You have successfully registered as a BidderAgent!");
-            user = new BidderAgent(-1, lastName, firstName, email, phoneNumber, nickName, password);
+            user = new BidderAgent(-1, lastName, firstName, email, phoneNumber, nickName, password, commission);
             fileName = "bidder-agents.csv";
         }
         else{
@@ -366,6 +423,13 @@ final class Services {
         ArrayList<String> info = new ArrayList<String>();
         info.add(String.valueOf(user.getUserID())); info.add(user.getLastName()); info.add(user.getFirstName());
         info.add(user.getEmail()); info.add(user.getPhoneNumber()); info.add(user.getNickName()); info.add(user.getPassword());
+        if (user instanceof BidderAgent){
+            info.add(String.valueOf(((BidderAgent) user).getCommission()));
+            info.add(String.valueOf(((BidderAgent) user).getClientID()));
+            info.add(String.valueOf(((BidderAgent) user).getAuctionID()));
+            info.add(String.valueOf(((BidderAgent) user).getProductID()));
+            info.add(String.valueOf(((BidderAgent) user).getMaxSum()));
+        }
         database.addToCsv(fileName, info);
 
         users.add(user);
@@ -391,6 +455,7 @@ final class Services {
                 System.out.println("(2) List of auctions ordered by date");
                 System.out.println("(3) Register to a new auction");
                 System.out.println("(4) Place bet");
+                System.out.println("(5) Hire Bidder Agent");
                 System.out.println("(8) Delete Account");
                 option = input.nextLine();
                 switch(option){
@@ -412,6 +477,10 @@ final class Services {
                     }
                     case "4":{
                         placeBet();
+                        break;
+                    }
+                    case "5":{
+                        hireAgent();
                         break;
                     }
                     case "8":{
@@ -475,10 +544,11 @@ final class Services {
                 }
             }
 
-            if(user instanceof BidderAgent){ // Options for seller
+            if(user instanceof BidderAgent){ // Options for bidder agent
                 System.out.println("(0) Exit application");
                 System.out.println("(1) Logout");
                 System.out.println("(2) List of auctions ordered by date");
+                System.out.println("(3) To place bet (only if you are hired)");
                 System.out.println("(8) Delete Account");
                 option = input.nextLine();
                 switch(option){
@@ -492,6 +562,10 @@ final class Services {
                     }
                     case "2": {
                         displayAuctions();
+                        break;
+                    }
+                    case "3": {
+                        placeBet2();
                         break;
                     }
                     case "8":{
@@ -1089,12 +1163,230 @@ final class Services {
         info.add(String.valueOf(p.getStartPrice())); info.add(String.valueOf(p.getInsurance()));
         info.add(String.valueOf(p.getSellerID())); info.add(p.getState()); info.add(String.valueOf(p.getApparition().getYear()));
         info.add(String.valueOf(p.getApparition().getMonth())); info.add(String.valueOf(p.getApparition().getDate()));
-        info.add(p.getFirstOwner());
+        info.add(p.getFirstOwner()); info.add(String.valueOf(p.getSoldPrice()));
 
         database.updateCsv("collection-products.csv", p.getProductID(), info); // update products
 
         System.out.println("Congrats! You are the new price leader on this product!\nPress enter to continue...");
         audit.auditLog("Bet placed.");
+        try {
+            System.in.read();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void hireAgent(){
+        System.out.println("Displaying available bidder agents...");
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        users.stream().filter(u -> u instanceof BidderAgent && ((BidderAgent) u).getStatus().equals("available")).forEach(System.out::println);
+
+        Scanner input = new Scanner(System.in);
+        Auction auction = null;
+        BidderAgent bidder_agent = null;
+        boolean valid = false;
+        String text;
+        int ID;
+        while(true){
+            System.out.println("Enter agent id, -1 to exit:");
+            text = input.nextLine();
+            if(text.equals("-1"))
+                return;
+            try{
+                ID = Integer.parseInt(text);
+                for(User u : users)
+                    if (u.getUserID() == ID && u instanceof BidderAgent && ((BidderAgent) u).getStatus().equals("available")){
+                        valid = true;
+                        bidder_agent = (BidderAgent) u;
+                        break;
+                    }
+                if (valid == true)
+                    break;
+                else
+                    System.out.println("User must be registered as bidder-agent and his status should be available");
+            }
+            catch (Exception e){
+                System.out.println("Enter valid number");
+            }
+        }
+
+        System.out.println("Displaying auctions you have registered in:");
+        ((Bidder) user).displayAuctions();
+        System.out.println("Press enter to continue...");
+        try {
+            System.in.read();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        while (true) {
+            System.out.println("Enter auction id, -1 to exit:");
+            text = input.nextLine();
+            if (text.equals("-1"))
+                return;
+            try {
+                valid = true;
+                ID = Integer.parseInt(text);
+                auction = getAuctionByID(ID);
+            } catch (Exception e) {
+                System.out.println("Enter valid number");
+                valid = false;
+            }
+            if (auction != null && auction.getStatus() != "closed" && auction.searchUser(user) == true)
+                break;
+            if (valid == true)
+                if (auction == null)
+                    System.out.println("Auction id does not exist!");
+                else if (auction.getStatus() == "closed")
+                    System.out.println("Auction status is closed and you can't entry!");
+                else
+                    System.out.println("You are not registered to this auction!");
+        }
+
+
+        System.out.println("\n Products from selected auction:");
+        auction.displayProducts();
+        System.out.println("Press enter to continue...");
+        try {
+            System.in.read();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        String prodID;
+        int productID = 0;
+        Product product = null;
+        while (true) {
+            System.out.println("Select product you want to bet on, or -1 to exit:");
+            prodID = input.nextLine();
+            if ("-1".equals(prodID))
+                return;
+            try {
+                productID = Integer.parseInt(prodID);
+                valid = true;
+            } catch (Exception e) {
+                System.out.println("Enter valid number");
+                valid = false;
+            }
+            if (valid == true) {
+                product = auction.getProduct(productID);
+                if (product != null)
+                    break;
+                System.out.println("Product id does not exist!");
+            }
+        }
+
+        int max_sum;
+        float minBet = Math.max(product.getStartPrice(), product.getSoldPrice());
+        while(true){
+            System.out.println("Enter the maximum sum");
+            text = input.nextLine();
+            try{
+                max_sum = Integer.parseInt(text);
+                if (max_sum <= minBet)
+                    System.out.println("Min bet for this product is: " + minBet);
+                else
+                    break;
+            }
+            catch(Exception e){
+                System.out.println("Enter a valid value(double)");
+            }
+        }
+
+        bidder_agent.setClientID(user.getUserID());
+        bidder_agent.setAuctionID(ID);
+        bidder_agent.setProductID(productID);
+        bidder_agent.setMaxSum(max_sum);
+        auction.addUser((User)bidder_agent);
+        System.out.println("You successfully hired:");
+        System.out.println(bidder_agent);
+
+
+        Auction a = auction;
+        ArrayList<String> info = new ArrayList<>(); // Modified info
+        info.add(String.valueOf(a.getAuctionID())); info.add(a.getStatus()); info.add(String.valueOf(a.getDate().getYear()));
+        info.add(String.valueOf(a.getDate().getMonth())); info.add(String.valueOf(a.getDate().getDate()));
+        info.add(String.valueOf(a.getUsers().size())); // Add users
+        for(User u : a.getUsers())
+            info.add(String.valueOf(u.getUserID()));
+        info.add(String.valueOf(a.getProducts().size())); // Add products
+        for(Product p : a.getProducts())
+            info.add(String.valueOf(p.getProductID()));
+
+        database.updateCsv("auctions.csv", a.getAuctionID(), info); // update auction
+
+        info = new ArrayList<>();
+        info.add(String.valueOf(bidder_agent.getUserID())); info.add(bidder_agent.getFirstName()); info.add(bidder_agent.getLastName());
+        info.add(bidder_agent.getEmail()); info.add(bidder_agent.getPhoneNumber()); info.add(bidder_agent.getNickName());
+        info.add(bidder_agent.getPassword()); info.add(bidder_agent.getStatus()); info.add(String.valueOf(bidder_agent.getCommission()));
+        info.add(String.valueOf(bidder_agent.getClientID())); info.add(String.valueOf(bidder_agent.getAuctionID()));
+        info.add(String.valueOf(bidder_agent.getProductID())); info.add(String.valueOf(bidder_agent.getMaxSum()));
+
+        database.updateCsv("bidder-agents.csv", bidder_agent.getUserID(), info); // update auction
+        audit.auditLog("Agent hired.");
+
+        System.out.println("Press enter to continue...");
+        try {
+            System.in.read();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void placeBet2(){
+        if (((BidderAgent)user).getClientID() == -1){
+            System.out.println("You're not hired so you can't place a bet.");
+            return;
+        }
+        Scanner input = new Scanner(System.in);
+        Auction auction = getAuctionByID(((BidderAgent)user).getAuctionID());
+        Product product = auction.getProduct(((BidderAgent)user).getProductID());
+        int maxSum = ((BidderAgent)user).getMaxSum();
+
+        float minBet = Math.max(product.getStartPrice(), product.getSoldPrice());
+        System.out.println("Min bet for this product is: " + minBet);
+        String bet;
+        float Bet = 0;
+
+        if (maxSum <= minBet)
+            System.out.println("Current sum overflows your maxim sum");
+        else
+            while(true){
+                System.out.println("Enter betting amount(float):");
+                bet = input.nextLine();
+                try {
+                    Bet = Float.parseFloat(bet);
+                    if(Bet < minBet)
+                        System.out.println("Minimum bet is: " + minBet);
+                    else if (Bet > maxSum)
+                        System.out.println("Your maximum amount to bet is: " + maxSum);
+                    else
+                        break;
+                }
+                catch (Exception e) {
+                    System.out.println("Enter valid float number");
+                }
+            }
+
+        product.setSoldPrice(Bet);
+        product.setBuyerID(((BidderAgent)user).getClientID());
+
+        ArrayList<String> info = new ArrayList<>();
+        CollectionProduct p = (CollectionProduct)product;
+        info.add(String.valueOf(p.getProductID())); info.add(p.getProductName()); info.add(p.getDescription());
+        info.add(String.valueOf(p.getStartPrice())); info.add(String.valueOf(p.getInsurance()));
+        info.add(String.valueOf(p.getSellerID())); info.add(p.getState()); info.add(String.valueOf(p.getApparition().getYear()));
+        info.add(String.valueOf(p.getApparition().getMonth())); info.add(String.valueOf(p.getApparition().getDate()));
+        info.add(p.getFirstOwner());info.add(String.valueOf(p.getSoldPrice()));
+
+        database.updateCsv("collection-products.csv", p.getProductID(), info); // update products
+
+        System.out.println("Congrats! Your client is the new price leader on this product!\nPress enter to continue...");
+        audit.auditLog("Bet placed for client.");
         try {
             System.in.read();
         } catch (IOException e) {

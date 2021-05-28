@@ -17,28 +17,7 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\resources\bidder-agents.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
         <entry key="\resources\bidders.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\resources\customers.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\resources\products.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />

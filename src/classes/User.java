@@ -1,14 +1,14 @@
 package classes;
 
 abstract public class User {
-    private static int contor = 0;
-    private final int userID;
-    private String lastName;
-    private String firstName;
-    private String email;
-    private String phoneNumber;
-    private String nickName;
-    private String password;
+    protected static int contor = 0;
+    protected final int userID;
+    protected String lastName;
+    protected String firstName;
+    protected String email;
+    protected String phoneNumber;
+    protected String nickName;
+    protected String password;
 
     public User(int id, String lastName, String firstName, String email, String phoneNumber, String nickName, String password) {
         this.lastName = lastName;
@@ -80,6 +80,7 @@ abstract public class User {
     public int getUserID() {
         return userID;
     }
+
 
     @Override
     public String toString() {
